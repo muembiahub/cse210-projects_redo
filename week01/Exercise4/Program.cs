@@ -54,7 +54,7 @@ class Program
         Console.WriteLine("Sum: {0}", sum);
         Console.WriteLine("Count: {0}", count);
         Console.WriteLine("Product: {0}", product);
-        Console.WriteLine("Average: {0}", sum / count);
+        Console.WriteLine("Average: {0}",(double) sum / count);
         Console.WriteLine("Largest: {0}", largest);
         Console.WriteLine("Smallest Positive: {0}", smallestPositive);
         Console.WriteLine("Sorted List: {0}", SortedList);
