@@ -4,9 +4,25 @@ using Microsoft.Data.Sqlite;
 
 public class JournalDatabase
 {
-    private string connectionString = "Data Source=journal.db";
+    private string connectionString;
+    private string dbFile;
+    public List<JournalEntry> Entries { get; private set; } = new List<JournalEntry>();
 
-    public JournalDatabase()
+    public JournalDatabase(string dbFile)
+    {
+        this.dbFile = dbFile;
+        connectionString = $"Data Source={dbFile}";
+        EnsureTableExists();
+    }
+
+    public void SetFile(string newFile)
+    {
+        dbFile = newFile;
+        connectionString = $"Data Source={dbFile}";
+        EnsureTableExists();
+    }
+
+    private void EnsureTableExists()
     {
         using var connection = new SqliteConnection(connectionString);
         connection.Open();
@@ -22,25 +38,30 @@ public class JournalDatabase
         command.ExecuteNonQuery();
     }
 
-    public void SaveEntry(JournalEntry entry)
+    public void SaveAllEntries()
     {
         using var connection = new SqliteConnection(connectionString);
         connection.Open();
 
-        var command = connection.CreateCommand();
-        command.CommandText =
-        @"INSERT INTO Entries (Prompt, Response, Date)
-          VALUES ($prompt, $response, $date)";
-        command.Parameters.AddWithValue("$prompt", entry.Prompt);
-        command.Parameters.AddWithValue("$response", entry.Response);
-        command.Parameters.AddWithValue("$date", entry.Date);
+        foreach (var entry in Entries)
+        {
+            var command = connection.CreateCommand();
+            command.CommandText =
+            @"INSERT INTO Entries (Prompt, Response, Date)
+              VALUES ($prompt, $response, $date)";
+            command.Parameters.AddWithValue("$prompt", entry.Prompt);
+            command.Parameters.AddWithValue("$response", entry.Response);
+            command.Parameters.AddWithValue("$date", entry.Date);
+            command.ExecuteNonQuery();
+        }
 
-        command.ExecuteNonQuery();
+       
     }
 
-    public List<JournalEntry> LoadEntries()
+    public void LoadEntries()
     {
-        var entries = new List<JournalEntry>();
+        Entries.Clear();
+
         using var connection = new SqliteConnection(connectionString);
         connection.Open();
 
@@ -54,8 +75,7 @@ public class JournalDatabase
             {
                 Date = reader.GetString(2)
             };
-            entries.Add(entry);
+            Entries.Add(entry);
         }
-        return entries;
     }
 }
